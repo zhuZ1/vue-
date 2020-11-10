@@ -36,7 +36,7 @@ function genStaticKeys (keys: string): Function {
 }
 
 function markStatic (node: ASTNode) {  // 标记静态节点
-  node.static = isStatic(node)
+  node.static = isStatic(node)  //对AST节点是否是静态的判断
   if (node.type === 1) {
     // do not make component slot content static. this avoids
     // 1. components not able to mutate slot nodes
@@ -48,6 +48,7 @@ function markStatic (node: ASTNode) {  // 标记静态节点
     ) {
       return
     }
+    // 对一个普通节点，遍历它的children，递归执行markStatic
     for (let i = 0, l = node.children.length; i < l; i++) {
       const child = node.children[i]
       markStatic(child)
@@ -55,10 +56,10 @@ function markStatic (node: ASTNode) {  // 标记静态节点
         node.static = false
       }
     }
-    if (node.ifConditions) {
+    if (node.ifConditions) { // 如果节点的 ifConditions不为空
       for (let i = 1, l = node.ifConditions.length; i < l; i++) {
-        const block = node.ifConditions[i].block
-        markStatic(block)
+        const block = node.ifConditions[i].block  // 则遍历ifConditions拿到所有条件中的 block，也就是它们对应的AST节点
+        markStatic(block) // 递归执行markStatic
         if (!block.static) {
           node.static = false
         }
@@ -69,7 +70,7 @@ function markStatic (node: ASTNode) {  // 标记静态节点
 
 function markStaticRoots (node: ASTNode, isInFor: boolean) { // 标记静态根
   if (node.type === 1) {
-    if (node.static || node.once) {
+    if (node.static || node.once) { //静态节点或者是 v-once指令的节点
       node.staticInFor = isInFor
     }
     // For a node to qualify as a static root, it should have children that
@@ -98,6 +99,7 @@ function markStaticRoots (node: ASTNode, isInFor: boolean) { // 标记静态根
 }
 
 function isStatic (node: ASTNode): boolean {  // 用来判断是否是静态节点
+  // 表达式 非静态，纯文本 静态
   if (node.type === 2) { // expression
     return false
   }
@@ -126,3 +128,6 @@ function isDirectChildOfTemplateFor (node: ASTElement): boolean {
   }
   return false
 }
+
+// 深度遍历了AST树，去检测它的每一棵子树是不是静态节点，如果是静态节点则它们生成的DOM永远不需要改变
+// 对运行时模板的更新起到了极大的优化作用

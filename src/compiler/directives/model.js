@@ -37,7 +37,7 @@ export function genAssignmentCode (
   value: string,
   assignment: string
 ): string {
-  const res = parseModel(value)
+  const res = parseModel(value)  // 首先对 v-model对应的value做了处理
   if (res.key === null) {
     return `${value}=${assignment}`
   } else {

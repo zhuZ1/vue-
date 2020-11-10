@@ -12,9 +12,10 @@ export function resolveTransition (def?: string | Object): ?Object {
   if (typeof def === 'object') {
     const res = {}
     if (def.css !== false) {
-      extend(res, autoCssTransition(def.name || 'v'))
+      extend(res, autoCssTransition(def.name || 'v'))   // autoCssTransition处理name属性
     }
     extend(res, def)
+    // 扩展到def中，并返回给data
     return res
   } else if (typeof def === 'string') {
     return autoCssTransition(def)
@@ -22,6 +23,7 @@ export function resolveTransition (def?: string | Object): ?Object {
 }
 
 const autoCssTransition: (name: string) => Object = cached(name => {
+  // 生成一个用来描述各个阶段的Class名称的对象
   return {
     enterClass: `${name}-enter`,
     enterToClass: `${name}-enter-to`,

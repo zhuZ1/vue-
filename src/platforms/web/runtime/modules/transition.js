@@ -29,7 +29,7 @@ export function enter (vnode: VNodeWithData, toggleDisplay: ?() => void) {
     el._leaveCb()
   }
 
-  const data = resolveTransition(vnode.data.transition)
+  const data = resolveTransition(vnode.data.transition)  // 解析过渡数据
   if (isUndef(data)) {
     return
   }

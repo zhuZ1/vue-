@@ -84,7 +84,7 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 // 将之前 createComponentInstanceForVnode函数传入的几个参数 合并到内部的选项 $options
   const vnodeComponentOptions = parentVnode.componentOptions
   opts.propsData = vnodeComponentOptions.propsData
-  opts._parentListeners = vnodeComponentOptions.listeners
+  opts._parentListeners = vnodeComponentOptions.listeners // 拿到父组件传入的listener
   opts._renderChildren = vnodeComponentOptions.children
   opts._componentTag = vnodeComponentOptions.tag
 

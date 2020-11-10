@@ -46,6 +46,7 @@ export function generate (
 ): CodegenResult {
   const state = new CodegenState(options)
   const code = ast ? genElement(ast, state) : '_c("div")'
+  // 首先通过 genElement生成code，再将code用with包裹起来
   return {
     render: `with(this){return ${code}}`,
     staticRenderFns: state.staticRenderFns
@@ -53,6 +54,7 @@ export function generate (
 }
 
 export function genElement (el: ASTElement, state: CodegenState): string {
+  // 根据AST元素节点的属性执行不同的代码生成函数
   if (el.parent) {
     el.pre = el.pre || el.parent.pre
   }
@@ -68,6 +70,7 @@ export function genElement (el: ASTElement, state: CodegenState): string {
   } else if (el.tag === 'template' && !el.slotTarget && !state.pre) {
     return genChildren(el, state) || 'void 0'
   } else if (el.tag === 'slot') {
+    // 当前AST节点是 slot
     return genSlot(el, state)
   } else {
     // component or element
@@ -264,6 +267,7 @@ export function genData (el: ASTElement, state: CodegenState): string {
   }
   // slot target
   // only for non-scoped slots
+  // codegen阶段会给 data添加一个slot属性，并指向slotTarget
   if (el.slotTarget && !el.slotScope) {
     data += `slot:${el.slotTarget},`
   }
@@ -312,10 +316,11 @@ function genDirectives (el: ASTElement, state: CodegenState): string | void {
   let res = 'directives:['
   let hasRuntime = false
   let i, l, dir, needRuntime
-  for (i = 0, l = dirs.length; i < l; i++) {
+  for (i = 0, l = dirs.length; i < l; i++) { // 遍历 el.directives
     dir = dirs[i]
     needRuntime = true
-    const gen: DirectiveFunction = state.directives[dir.name]
+    const gen: DirectiveFunction = state.directives[dir.name]  // 获取每个指令对应的方法
+    // 这个指令方法实际是 实例化CodegenState的时候通过 option传入的
     if (gen) {
       // compile-time directive that manipulates AST.
       // returns true if it also needs a runtime counterpart.
@@ -544,8 +549,8 @@ export function genComment (comment: ASTText): string {
 }
 
 function genSlot (el: ASTElement, state: CodegenState): string {
-  const slotName = el.slotName || '"default"'
-  const children = genChildren(el, state)
+  const slotName = el.slotName || '"default"'  // 从ast元素节点对应的属性上取
+  const children = genChildren(el, state)  // 对应的是slot 开始和闭合标签包裹的内容
   let res = `_t(${slotName}${children ? `,${children}` : ''}`
   const attrs = el.attrs || el.dynamicAttrs
     ? genProps((el.attrs || []).concat(el.dynamicAttrs || []).map(attr => ({

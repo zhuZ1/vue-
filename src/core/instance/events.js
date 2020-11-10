@@ -14,7 +14,7 @@ export function initEvents (vm: Component) {
   vm._hasHookEvent = false
   // init parent attached events
   const listeners = vm.$options._parentListeners
-  if (listeners) {
+  if (listeners) { // 处理父组件传入的 listener
     updateComponentListeners(vm, listeners)
   }
 }
@@ -46,10 +46,14 @@ export function updateComponentListeners (
 ) {
   target = vm
   updateListeners(listeners, oldListeners || {}, add, remove, createOnceHandler, vm)
+  // 对于自定义事件和原生事件处理的差异就在 事件添加和删除的差异上
   target = undefined
 }
 
-export function eventsMixin (Vue: Class<Component>) {
+export function eventsMixin (Vue: Class<Component>) {  // Vue事件中心的实现
+  // 将所有的事件用 vm._events存储起来
+  // 当执行 vm.$on(event, fn)的时候，按事件名称将 fn存储起来 vm._$event[event].push(fn)
+
   const hookRE = /^hook:/
   Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
     const vm: Component = this
@@ -74,6 +78,8 @@ export function eventsMixin (Vue: Class<Component>) {
       vm.$off(event, on)
       fn.apply(vm, arguments)
     }
+    // 当执行到 vm.$once的时候，内部就是执行 vm.$on
+    // 当执行一次后就调用 vm.$off() 移除事件，确保回调函数只执行一次
     on.fn = fn
     vm.$on(event, on)
     return vm
@@ -87,6 +93,7 @@ export function eventsMixin (Vue: Class<Component>) {
       return vm
     }
     // array of events
+    // 当执行到 vm.$off(event, fn)的时候，会移除掉event 和对应的fn
     if (Array.isArray(event)) {
       for (let i = 0, l = event.length; i < l; i++) {
         vm.$off(event[i], fn)
@@ -129,6 +136,8 @@ export function eventsMixin (Vue: Class<Component>) {
         )
       }
     }
+    // 当执行 vm.$emit(event)的时候，根据事件名 event 找到所有的回调函数cbs
+    // 然后遍历执行所有的回调函数
     let cbs = vm._events[event]
     if (cbs) {
       cbs = cbs.length > 1 ? toArray(cbs) : cbs
@@ -140,4 +149,7 @@ export function eventsMixin (Vue: Class<Component>) {
     }
     return vm
   }
+
+  // 需要注意的是 vm.$emit是给当前vm派发的实例，之所以常被用来做父子间的通信
+  // 是因为他的回调函数的定义是在父组件中
 }

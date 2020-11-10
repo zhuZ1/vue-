@@ -72,6 +72,7 @@ Vue.prototype.$mount = function (
         delimiters: options.delimiters,
         comments: options.comments
       }, this)
+      // 将模板template编译生成 render 和 staticRenderFns
       options.render = render
       options.staticRenderFns = staticRenderFns
 

@@ -25,10 +25,11 @@ export function setActiveInstance(vm: Component) {
   const prevActiveInstance = activeInstance
   // 用prevActiveInstance 保留上一次的 activeInstance
   // 实际上 prevActiveInstance 和 当前的 vm是一个父子关系
-  activeInstance = vm
+  activeInstance = vm // 赋值过程
   return () => {
     activeInstance = prevActiveInstance
     // 保持当前上下文的 Vue实例
+    // 当一个vm实例完成它的所有子树的 patch或者 update过程后， activeInstance会回到它的父实例
   }
 }
 
@@ -60,11 +61,13 @@ export function initLifecycle (vm: Component) {
 }
 
 export function lifecycleMixin (Vue: Class<Component>) {
+  // _update是 实例的一个私有方法，调用的时机有两个
+  // 一个是 首次渲染，一个是 数据更新的时候
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
     const prevVnode = vm._vnode
-    const restoreActiveInstance = setActiveInstance(vm)
+    const restoreActiveInstance = setActiveInstance(vm) // 把当前的vm赋值给 activeInstance
     vm._vnode = vnode
     // vnode 是通过 vm._render()返回的组件渲染 VNode
     // Vue.prototype.__patch__ is injected in entry points
@@ -237,7 +240,7 @@ export function updateChildComponent (
   listeners: ?Object,
   parentVnode: MountedComponentVNode,
   renderChildren: ?Array<VNode>
-) {
+) {  // 由于更新了 vnode，vnode对应的实例vm的一系列属性也会变化
   if (process.env.NODE_ENV !== 'production') {
     isUpdatingChildComponent = true
   }
@@ -330,9 +333,9 @@ export function activateChildComponent (vm: Component, direct?: boolean) {
   if (vm._inactive || vm._inactive === null) {
     vm._inactive = false
     for (let i = 0; i < vm.$children.length; i++) {
-      activateChildComponent(vm.$children[i])
+      activateChildComponent(vm.$children[i])  // 递归执行子组件的activated钩子函数
     }
-    callHook(vm, 'activated')
+    callHook(vm, 'activated')  // 执行组件的 activated钩子函数
   }
 }
 
@@ -352,7 +355,7 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
   }
 }
 
-export function callHook (vm: Component, hook: string) {
+export function callHook (vm: Component, hook: string) { // 最终执行生命周期的函数都是调用callHook
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()
   // 根据传入的 hook字符串，拿到对应的回调函数数组，

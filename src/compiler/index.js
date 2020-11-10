@@ -25,6 +25,16 @@ export const createCompiler = createCompilerCreator(function baseCompile (
     ast,
     render: code.render,
     staticRenderFns: code.staticRenderFns
-  }
+  } // 这里return的结果是baseCompile的
 })
+// createCompiler方法实际上是调用 createCompilerCreator方法返回的
 // ast 是树状结构，每一个节点都是 ast element，除了自身的一些属性，还维持了它的父子关系。
+
+
+// 整个过程大概梳理一下：
+// 1. compileToFunctions将 template模板编译成 render 和 staticRenderFns
+// 2. compileToFunctions 是 createCompiler函数返回的，createCompiler函数返回两个值 compile 和 compileToFunctions
+//      compileToFunctions是 调用createCompileToFunctionFn(compile)后的返回值
+// 3. createCompiler是 createCompilerCreator的返回值，createCompilerCreator接收参数 baseCompile
+// 4. createCompiler接收参数 baseOptions
+// 5. 执行compile(template, options) 是核心编译过程

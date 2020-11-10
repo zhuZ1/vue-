@@ -33,7 +33,7 @@ export const transitionProps = {
 // we want to recursively retrieve the real component to be rendered
 function getRealChild (vnode: ?VNode): ?VNode {
   const compOptions: ?VNodeComponentOptions = vnode && vnode.componentOptions
-  if (compOptions && compOptions.Ctor.options.abstract) {
+  if (compOptions && compOptions.Ctor.options.abstract) {  // 递归找到第一个非抽象组件的 vnode并返回
     return getRealChild(getFirstComponentChild(compOptions.children))
   } else {
     return vnode
@@ -86,7 +86,7 @@ export default {
   abstract: true,
 
   render (h: Function) {
-    let children: any = this.$slots.default
+    let children: any = this.$slots.default  // 从默认插槽中获取 transition包裹的子节点
     if (!children) {
       return
     }
@@ -108,7 +108,7 @@ export default {
     }
 
     const mode: string = this.mode
-
+// 处理 mode 过渡组件对于 mode的支持 in-out out-in
     // warn invalid mode
     if (process.env.NODE_ENV !== 'production' &&
       mode && mode !== 'in-out' && mode !== 'out-in'
@@ -119,7 +119,7 @@ export default {
       )
     }
 
-    const rawChild: VNode = children[0]
+    const rawChild: VNode = children[0]  // 第一个子节点 vnode
 
     // if this is a component root node and the component's
     // parent container node also has transition, skip.
@@ -129,7 +129,7 @@ export default {
 
     // apply transition data to child
     // use getRealChild() to ignore abstract components e.g. keep-alive
-    const child: ?VNode = getRealChild(rawChild)
+    const child: ?VNode = getRealChild(rawChild)  // 获取非抽象子节点
     /* istanbul ignore if */
     if (!child) {
       return rawChild
@@ -142,7 +142,7 @@ export default {
     // ensure a key that is unique to the vnode type and to this transition
     // component instance. This key will be used to remove pending leaving nodes
     // during entering.
-    const id: string = `__transition-${this._uid}-`
+    const id: string = `__transition-${this._uid}-`  // 获取id
     child.key = child.key == null
       ? child.isComment
         ? id + 'comment'
@@ -151,7 +151,7 @@ export default {
         ? (String(child.key).indexOf(id) === 0 ? child.key : id + child.key)
         : child.key
 
-    const data: Object = (child.data || (child.data = {})).transition = extractTransitionData(this)
+    const data: Object = (child.data || (child.data = {})).transition = extractTransitionData(this)  // 从组件实例上提取过渡需要的数据
     const oldRawChild: VNode = this._vnode
     const oldChild: VNode = getRealChild(oldRawChild)
 

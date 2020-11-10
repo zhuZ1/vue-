@@ -93,6 +93,7 @@ export function addHandler (
   // normalize click.right and click.middle since they don't actually fire
   // this is technically browser-specific, but at least for now browsers are
   // the only target envs that have right/middle clicks.
+  // 根据 modifiers修饰符对事件名 name做处理
   if (modifiers.right) {
     if (dynamic) {
       name = `(${name})==='click'?'contextmenu':(${name})`
@@ -124,7 +125,7 @@ export function addHandler (
   }
 
   let events
-  if (modifiers.native) {
+  if (modifiers.native) {  // 判断是 原生事件还是普通事件
     delete modifiers.native
     events = el.nativeEvents || (el.nativeEvents = {})
   } else {
@@ -137,6 +138,7 @@ export function addHandler (
   }
 
   const handlers = events[name]
+  // 根据 name对事件做归类
   /* istanbul ignore if */
   if (Array.isArray(handlers)) {
     important ? handlers.unshift(newHandler) : handlers.push(newHandler)

@@ -25,7 +25,7 @@ let index = 0
 /**
  * Reset the scheduler's state.
  */
-function resetSchedulerState () {
+function resetSchedulerState () {  // 将一些控制流程状态的变量恢复为初始值，清空watcher队列
   index = queue.length = activatedChildren.length = 0
   has = {}
   if (process.env.NODE_ENV !== 'production') {
@@ -88,7 +88,8 @@ function flushSchedulerQueue () {
   // 3. 如果一个组件在父组件的watcher 执行期间被销毁，那么它对应的watcher 执行都可以跳过
   // do not cache length because more watchers might be pushed
   // as we run existing watchers
-  for (index = 0; index < queue.length; index++) {
+  for (index = 0; index < queue.length; index++) {  // 在遍历的时候，每次对 queue.length求值
+    // 因为在 watcher.run()的时候，很可能会有新的 watcher添加进来
     watcher = queue[index]
     if (watcher.before) {
       watcher.before()
@@ -169,11 +170,14 @@ export function queueWatcher (watcher: Watcher) {
   if (has[id] == null) { // 保证同一个Watcher 只添加一次
     has[id] = true
     if (!flushing) {
-      queue.push(watcher)
+      queue.push(watcher)  // 这里引入了一个队列的概念
+      // 它并不会每次数据改变都触发 watcher的回调，而是把这些watcher先添加到一个队列里
+      // 然后在 nextTick后执行 flushSchedulerQueue
     } else {
       // if already flushing, splice the watcher based on its id
       // if already past its id, it will be run next immediately.
-      let i = queue.length - 1
+      let i = queue.length - 1 // 从后王倩找，找到第一个待插入 watcher的id比当前队列中 watcher的id大的位置
+      // 将watcher按照id的大小插入到 queue中
       while (i > index && queue[i].id > watcher.id) {
         i--
       }

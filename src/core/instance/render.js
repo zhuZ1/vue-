@@ -22,7 +22,7 @@ export function initRender (vm: Component) {
   const options = vm.$options
   const parentVnode = vm.$vnode = options._parentVnode // the placeholder node in parent tree
   const renderContext = parentVnode && parentVnode.context
-  vm.$slots = resolveSlots(options._renderChildren, renderContext)
+  vm.$slots = resolveSlots(options._renderChildren, renderContext)  //获取到 vm.$slot
   vm.$scopedSlots = emptyObject
   // bind the createElement fn to this instance
   // so that we get proper render context inside it.
@@ -83,6 +83,7 @@ export function renderMixin (Vue: Class<Component>) {
     // set parent vnode. this allows render functions to have access
     // to the data on the placeholder node.
     vm.$vnode = _parentVnode
+    // 当前组件的父VNode
     // render self
     let vnode
     try {
@@ -91,6 +92,7 @@ export function renderMixin (Vue: Class<Component>) {
       // when parent component is patched.
       currentRenderingInstance = vm
       vnode = render.call(vm._renderProxy, vm.$createElement)
+      // render函数生成的 vnode，是当前组件的渲染 vnode
       // render 函数中的createElement 方法就是 vm.$createElement方法， 返回的是Vnode
     } catch (e) {
       handleError(e, vm, `render`)
@@ -126,7 +128,7 @@ export function renderMixin (Vue: Class<Component>) {
       vnode = createEmptyVNode()
     }
     // set parent
-    vnode.parent = _parentVnode
+    vnode.parent = _parentVnode // vnode的parent指向了 _parentVnode, vnode和 _parentVnode是一种父子关系
     return vnode
   }
 }

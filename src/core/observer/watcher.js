@@ -58,20 +58,20 @@ export default class Watcher {
     // 将当前 watcher实例 push到 vm.watchers中， vm._watcher是专门用来监听 vm上数据变化后重新渲染的，所以是一个渲染相关的 watcher
     // options
     if (options) {
-      this.deep = !!options.deep
-      this.user = !!options.user
-      this.lazy = !!options.lazy
-      this.sync = !!options.sync
+      this.deep = !!options.deep // 是否深度监听
+      this.user = !!options.user // 是否是 user watcher
+      this.lazy = !!options.lazy // 表示是 computed
+      this.sync = !!options.sync // 是否同步更新
       this.before = options.before
     } else {
       this.deep = this.user = this.lazy = this.sync = false
     }
     this.cb = cb
     this.id = ++uid // uid for batching
-    this.active = true
-    this.dirty = this.lazy // for lazy watchers
-    this.deps = []
-    this.newDeps = []
+    this.active = true  // 派发更新的标志位
+    this.dirty = this.lazy // for lazy watchers 标记为，表示是否对computed计算
+    this.deps = [] // 上一次添加的 Dep实例数组
+    this.newDeps = [] // 新添加的 Dep实例数组
     // 表示Watcher实例持有的Dep 实例数组
     this.depIds = new Set()
     this.newDepIds = new Set()
@@ -102,12 +102,15 @@ export default class Watcher {
   /**
    * Evaluate the getter, and re-collect dependencies.
    */
-  get () {
+  get () {  // 当实例化一个渲染 watcher的时候，首先进入watcher的构造函数的逻辑，然后执行this.get()方法
     pushTarget(this)
     let value
     const vm = this.vm
     try {
-      value = this.getter.call(vm, vm)
+      value = this.getter.call(vm, vm) // this.getter对应就是 updateComponent函数
+      // 实际上就是在执行 vm._update(vm._render(), hydrating)
+      // 会先执行 vm._render方法，这个过程会访问数据，这个时候就触发了数据对象的 getter
+      // 在触发 getter的时候会调用dep.depend() 方法，
     } catch (e) {
       if (this.user) {
         handleError(e, vm, `getter for watcher "${this.expression}"`)
@@ -143,24 +146,26 @@ export default class Watcher {
   /**
    * Clean up for dependency collection.
    */
-  cleanupDeps () {
+  cleanupDeps () {  // 依赖清空
     let i = this.deps.length
-    while (i--) {
+    while (i--) {  // 首先遍历deps 移除对dep的订阅
       const dep = this.deps[i]
       if (!this.newDepIds.has(dep.id)) {
         dep.removeSub(this)
       }
     }
     let tmp = this.depIds
-    this.depIds = this.newDepIds
+    this.depIds = this.newDepIds  // 将depIds和 newDepIds交换
     this.newDepIds = tmp
-    this.newDepIds.clear()
+    this.newDepIds.clear()  // 清空newDepIds
     tmp = this.deps
-    this.deps = this.newDeps
+    this.deps = this.newDeps // 将deps和newDeps交换
     this.newDeps = tmp
-    this.newDeps.length = 0
+    this.newDeps.length = 0 // 清空newDeps
   }
-
+// 为什么要做订阅移除呢，在添加 deps时已经通过 id避免了重复订阅？
+  // 模板根据 v-if去渲染 a， b子模板时，渲染a的时候，为a添加了getter和依赖收集
+  // 如果 此时渲染了 b，可能操作b的过程中修改了a的数据，此时a是没必要在订阅消息的，所以依赖清除很有必要
   /**
    * Subscriber interface.
    * Will be called when a dependency changes.
@@ -182,7 +187,7 @@ export default class Watcher {
    */
   run () {
     if (this.active) {
-      const value = this.get()
+      const value = this.get() // 得到当前值。会执行 getter方法，所以修改组件相关的响应式数据会触发组件的重新渲染
       if (
         value !== this.value ||
         // Deep watchers and watchers on Object/Arrays should fire even
@@ -195,8 +200,9 @@ export default class Watcher {
         const oldValue = this.value
         this.value = value
         if (this.user) {
-          try {
-            this.cb.call(this.vm, value, oldValue) // 新值和旧值作为参数传入
+          try { //满足条件，执行watcher的回调
+            this.cb.call(this.vm, value, oldValue)
+            // 新值和旧值作为参数传入，所以我们添加自定义watcher时能在回调函数的参数中拿到 新旧值的原因
           } catch (e) {
             handleError(e, this.vm, `callback for watcher "${this.expression}"`)
           }
@@ -212,7 +218,7 @@ export default class Watcher {
    * This only gets called for lazy watchers.
    */
   evaluate () {
-    this.value = this.get()
+    this.value = this.get()  // 计算属性求值
     this.dirty = false
   }
 

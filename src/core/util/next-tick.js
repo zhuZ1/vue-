@@ -10,7 +10,7 @@ export let isUsingMicroTask = false
 const callbacks = []
 let pending = false
 
-function flushCallbacks () {
+function flushCallbacks () {  // 最终执行 nextTick方法传入的回调函数
   pending = false
   const copies = callbacks.slice(0)
   callbacks.length = 0
@@ -39,9 +39,9 @@ let timerFunc
 // completely stops working after triggering a few times... so, if native
 // Promise is available, we will use it:
 /* istanbul ignore next, $flow-disable-line */
-if (typeof Promise !== 'undefined' && isNative(Promise)) {
+if (typeof Promise !== 'undefined' && isNative(Promise)) {  //是否支持原生promise
   const p = Promise.resolve()
-  timerFunc = () => {
+  timerFunc = () => { // 如果原生支持 promise，用promise执行 flushCallbacks
     p.then(flushCallbacks)
     // In problematic UIWebViews, Promise.then doesn't completely break, but
     // it can get stuck in a weird state where callbacks are pushed into the
@@ -55,11 +55,12 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   isNative(MutationObserver) ||
   // PhantomJS and iOS 7.x
   MutationObserver.toString() === '[object MutationObserverConstructor]'
-)) {
+)) {  // 是否原生支持 MutationObserver
   // Use MutationObserver where native Promise is not available,
   // e.g. PhantomJS, iOS7, Android 4.4
   // (#6466 MutationObserver is unreliable in IE11)
   let counter = 1
+  // 支持则用 MutationObserver执行 flushCallbacks
   const observer = new MutationObserver(flushCallbacks)
   const textNode = document.createTextNode(String(counter))
   observer.observe(textNode, {
@@ -70,21 +71,22 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
     textNode.data = String(counter)
   }
   isUsingMicroTask = true
-} else if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
+} else if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) { // 是否原生支持 setImmediate
   // Fallback to setImmediate.
   // Technically it leverages the (macro) task queue,
   // but it is still a better choice than setTimeout.
-  timerFunc = () => {
+  timerFunc = () => { // 支持则用setImmediate执行 flushCallbacks
     setImmediate(flushCallbacks)
   }
 } else {
   // Fallback to setTimeout.
-  timerFunc = () => {
+  timerFunc = () => {  // 都不支持使用 setTimeout 方法执行
     setTimeout(flushCallbacks, 0)
   }
 }
 
 export function nextTick (cb?: Function, ctx?: Object) {
+  // nextTick会把传进来的回调push进 callbacks数组，然后执行 timerFunc()方法
   let _resolve
   callbacks.push(() => {
     if (cb) {
@@ -108,3 +110,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
     })
   }
 }
+
+// nextTick会优先使用 microTask，其次是 macroTask，nextTick中的任务会异步执行，相当于 promise.resolve.then(callback)
+// 或者 setTimeout(callback, 0)， vue的视图更新 nextTick(flushSchedulerQueue)等同于 setTimeout(flushSchedulerQueue, 0)
+// 数据做了修改，某些方法依赖了数据修改后的 dom，就必须在nextTick后执行这些方法

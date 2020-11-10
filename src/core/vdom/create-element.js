@@ -93,10 +93,10 @@ export function _createElement (
     children = simpleNormalizeChildren(children)
   }
   let vnode, ns
-  if (typeof tag === 'string') {
+  if (typeof tag === 'string') { // 对tag做判断，如果是string类型，
     let Ctor
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)
-    if (config.isReservedTag(tag)) {
+    if (config.isReservedTag(tag)) { // 如果是内置的节点，则直接创建一个普通 VNode
       // platform built-in elements
       if (process.env.NODE_ENV !== 'production' && isDef(data) && isDef(data.nativeOn)) {
         warn(
@@ -109,11 +109,13 @@ export function _createElement (
         undefined, undefined, context
       )
     } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
+      // 如果是已经注册的组件名，则通过 createComponent创建一个组件类型的 VNode
       // 调用resolveAsset(context.$options, 'components', tag) 拿到 vm.$options.components[tag]
       // 这样就拿到这个组件的 构造函数， 并作为 createComponent的 钩子的参数
       // component
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
+      // 否则创建一个未知类型的 VNode
       // unknown or unlisted namespaced elements
       // check at runtime because it may get assigned a namespace when its
       // parent normalizes children
@@ -122,7 +124,7 @@ export function _createElement (
         undefined, undefined, context
       )
     }
-  } else {
+  } else { // 如果是 component类型，直接调用 createComponent创建一个组件类型的VNode
     // direct component options / constructor
     vnode = createComponent(tag, data, context, children)
   }

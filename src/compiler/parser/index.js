@@ -487,7 +487,8 @@ function processRef (el) {
   }
 }
 
-export function processFor (el: ASTElement) {
+export function processFor (el: ASTElement) { // 从元素中拿到 v-for指令的内容
+  // 然后分别解析出 for，alias，iterator等属性的值添加到AST上
   let exp
   if ((exp = getAndRemoveAttr(el, 'v-for'))) {
     const res = parseFor(exp)
@@ -509,7 +510,7 @@ type ForParseResult = {
   iterator2?: string;
 };
 
-export function parseFor (exp: string): ?ForParseResult {
+export function parseFor (exp: string): ?ForParseResult {  //
   const inMatch = exp.match(forAliasRE)
   if (!inMatch) return
   const res = {}
@@ -528,7 +529,7 @@ export function parseFor (exp: string): ?ForParseResult {
   return res
 }
 
-function processIf (el) {
+function processIf (el) { // 从元素中拿到 v-if指令内容，往AST上添加 if属性和 ifConditions属性
   const exp = getAndRemoveAttr(el, 'v-if')
   if (exp) {
     el.if = exp
@@ -629,6 +630,7 @@ function processSlotContent (el) {
 
   // slot="xxx"
   const slotTarget = getBindingAttr(el, 'slot')
+  // 解析到标签上有 slot属性的时候，会给对应的AST元素节点添加slotTarget属性
   if (slotTarget) {
     el.slotTarget = slotTarget === '""' ? '"default"' : slotTarget
     el.slotTargetDynamic = !!(el.attrsMap[':slot'] || el.attrsMap['v-bind:slot'])
@@ -735,6 +737,7 @@ function getSlotName (binding) {
 function processSlotOutlet (el) {
   if (el.tag === 'slot') {
     el.slotName = getBindingAttr(el, 'name')
+    //遇到slot标签会给对应的AST元素节点添加 slotName属性，
     if (process.env.NODE_ENV !== 'production' && el.key) {
       warn(
         `\`key\` does not work on <slot> because slots are abstract outlets ` +
@@ -762,11 +765,11 @@ function processAttrs (el) {
   for (i = 0, l = list.length; i < l; i++) {
     name = rawName = list[i].name
     value = list[i].value
-    if (dirRE.test(name)) {
+    if (dirRE.test(name)) { // 判断如果是指令
       // mark element as dynamic
       el.hasBindings = true
       // modifiers
-      modifiers = parseModifiers(name.replace(dirRE, ''))
+      modifiers = parseModifiers(name.replace(dirRE, '')) // 通过 parseModifiers解析出修饰符
       // support .foo shorthand syntax for the .prop modifier
       if (process.env.VBIND_PROP_SHORTHAND && propBindRE.test(name)) {
         (modifiers || (modifiers = {})).prop = true

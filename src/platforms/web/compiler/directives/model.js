@@ -47,6 +47,7 @@ export default function model (
   } else if (tag === 'input' || tag === 'textarea') {
     genDefaultModel(el, value, modifiers)
   } else if (!config.isReservedTag(tag)) {
+    // 组件使用 v-model走这条逻辑
     genComponentModel(el, value, modifiers)
     // component v-model doesn't need extra runtime
     return false
@@ -146,7 +147,8 @@ function genDefaultModel (
     }
   }
 
-  const { lazy, number, trim } = modifiers || {}
+  const { lazy, number, trim } = modifiers || {}  // 先处理了 modifiers
+  // modifiers的不同主要影响了 event 和 valueExpression
   const needCompositionGuard = !lazy && type !== 'range'
   const event = lazy
     ? 'change'
@@ -162,11 +164,12 @@ function genDefaultModel (
     valueExpression = `_n(${valueExpression})`
   }
 
-  let code = genAssignmentCode(value, valueExpression)
+  let code = genAssignmentCode(value, valueExpression)  // 生成代码
   if (needCompositionGuard) {
     code = `if($event.target.composing)return;${code}`
   }
-
+  // v-model的精髓，通过修改AST元素，给el添加一个 prop，相当于在input上动态绑定了 value
+  // 又给el绑定了事件处理，相当于在input上绑定了 input事件
   addProp(el, 'value', `(${value})`)
   addHandler(el, event, code, null, true)
   if (trim || number) {

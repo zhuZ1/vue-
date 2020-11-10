@@ -11,7 +11,7 @@ let uid = 0
  * directives subscribing to it.
  */
 export default class Dep { // 实际上是对Watcher 的一种管理
-  static target: ?Watcher;
+  static target: ?Watcher;  // Dep是一个class，静态属性 target，全局唯一的 watcher
   id: number;
   subs: Array<Watcher>;
 
@@ -21,6 +21,7 @@ export default class Dep { // 实际上是对Watcher 的一种管理
   }
 
   addSub (sub: Watcher) {
+    // 将当前watcher订阅到这个数据持有的 dep的subs中
     this.subs.push(sub)
   }
 
@@ -57,10 +58,10 @@ const targetStack = []
 
 export function pushTarget (target: ?Watcher) {
   targetStack.push(target)
-  Dep.target = target
+  Dep.target = target // 将 dep.target赋值为当前的 渲染watcher并压栈
 }
 
 export function popTarget () {
-  targetStack.pop()
+  targetStack.pop() // 将 dep.target恢复成上一个状态
   Dep.target = targetStack[targetStack.length - 1]
 }

@@ -55,6 +55,7 @@ const componentVNodeHooks = {
   },
 
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
+    // 拿到新的vnode的组件配置以及组件实例
     const options = vnode.componentOptions
     const child = vnode.componentInstance = oldVnode.componentInstance
     updateChildComponent(
@@ -155,6 +156,7 @@ export function createComponent (  // 分为三个关键步骤 1. 构造子类�
 
   // transform component v-model data into props & events
   if (isDef(data.model)) {
+    // 创建子组件阶段使用了 v-model
     transformModel(Ctor.options, data)
   }
 
@@ -230,6 +232,7 @@ export function createComponentInstanceForVnode (
 
 function installComponentHooks (data: VNodeData) {
   // 将 componentVNodeHooks的钩子函数合并到 data.hook中
+  // 在VNode執行 patch的过程中执行相关的钩子函数
   const hooks = data.hook || (data.hook = {})
   for (let i = 0; i < hooksToMerge.length; i++) {
     const key = hooksToMerge[i]
@@ -257,10 +260,10 @@ function mergeHook (f1: any, f2: any): Function {
 function transformModel (options, data: any) {
   const prop = (options.model && options.model.prop) || 'value'
   const event = (options.model && options.model.event) || 'input'
-  ;(data.attrs || (data.attrs = {}))[prop] = data.model.value
+  ;(data.attrs || (data.attrs = {}))[prop] = data.model.value // 给data.props添加 data.model.value
   const on = data.on || (data.on = {})
   const existing = on[event]
-  const callback = data.model.callback
+  const callback = data.model.callback  // 给data.on添加 data.model.callback
   if (isDef(existing)) {
     if (
       Array.isArray(existing)

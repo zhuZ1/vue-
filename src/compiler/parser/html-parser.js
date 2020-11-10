@@ -64,7 +64,7 @@ export function parseHTML (html, options) {
     if (!lastTag || !isPlainTextElement(lastTag)) {
       let textEnd = html.indexOf('<')
       if (textEnd === 0) {
-        // Comment:
+        // Comment:  注释节点 前进到它们的末尾位置
         if (comment.test(html)) {
           const commentEnd = html.indexOf('-->')
 
@@ -87,7 +87,7 @@ export function parseHTML (html, options) {
           }
         }
 
-        // Doctype:
+        // Doctype: 文档类型节点， 前进它们自身长度的单位
         const doctypeMatch = html.match(doctype)
         if (doctypeMatch) {
           advance(doctypeMatch[0].length)
@@ -99,12 +99,12 @@ export function parseHTML (html, options) {
         if (endTagMatch) {
           const curIndex = index
           advance(endTagMatch[0].length)
-          parseEndTag(endTagMatch[1], curIndex, index)
+          parseEndTag(endTagMatch[1], curIndex, index)  // 解析结束标签
           continue
         }
 
         // Start tag:
-        const startTagMatch = parseStartTag()
+        const startTagMatch = parseStartTag()  // 解析开始标签
         if (startTagMatch) {
           handleStartTag(startTagMatch)
           if (shouldIgnoreFirstNewline(startTagMatch.tagName, html)) {
@@ -115,7 +115,7 @@ export function parseHTML (html, options) {
       }
 
       let text, rest, next
-      if (textEnd >= 0) {
+      if (textEnd >= 0) {  // 说明从当前位置到 textEnd位置都是文本
         rest = html.slice(textEnd)
         while (
           !endTag.test(rest) &&
@@ -132,7 +132,7 @@ export function parseHTML (html, options) {
         text = html.substring(0, textEnd)
       }
 
-      if (textEnd < 0) {
+      if (textEnd < 0) { // 说明整个 template解析完成
         text = html
       }
 
@@ -304,3 +304,5 @@ export function parseHTML (html, options) {
     }
   }
 }
+
+// parseHtml 循环解析template，用正则做各种匹配，匹配过程中用advance()函数不断前进整个字符串，直到字符串末尾

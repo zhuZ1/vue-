@@ -80,7 +80,7 @@ function add (
       }
     }
   }
-  target.addEventListener(
+  target.addEventListener( // 调用原生addEventListener
     name,
     handler,
     supportsPassive
@@ -95,21 +95,21 @@ function remove (
   capture: boolean,
   _target?: HTMLElement
 ) {
-  (_target || target).removeEventListener(
+  (_target || target).removeEventListener( // 调用原生 removeEventListener
     name,
     handler._wrapper || handler,
     capture
   )
 }
-
+// 在patch过程的 创建阶段和更新阶段都会执行 updateDOMListeners
 function updateDOMListeners (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   if (isUndef(oldVnode.data.on) && isUndef(vnode.data.on)) {
     return
   }
-  const on = vnode.data.on || {}
+  const on = vnode.data.on || {}  // 获取 vnode.data.on,这是我们之前生成的 data中对应的事件对象
   const oldOn = oldVnode.data.on || {}
-  target = vnode.elm
-  normalizeEvents(on)
+  target = vnode.elm  // target 是当前 Vnode对应的 DOM对象
+  normalizeEvents(on)  // 主要是对 v-model相关的处理
   updateListeners(on, oldOn, add, remove, createOnceHandler, vnode.context)
   target = undefined
 }

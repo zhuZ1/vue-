@@ -31,6 +31,7 @@ export function initExtend (Vue: GlobalAPI) {
     }
 
     const Sub = function VueComponent (options) {
+      // 我们去实例化 Sub的时候，就会执行this._init逻辑，再次走到了 Vue实例的初始化逻辑
       this._init(options)
     }
     Sub.prototype = Object.create(Super.prototype)
